@@ -2,7 +2,7 @@ import User from "../models/user.js"
 import bcrypt from "bcryptjs";
 import jwt  from "jsonwebtoken";
 
-
+//this api is for creating a new user.
 const signup = async (req, res, next) => {
     try {
         const salt = bcrypt.genSaltSync(10);
@@ -15,6 +15,8 @@ const signup = async (req, res, next) => {
         next(err)
     }
 }
+
+//this api is for signing in by the user
 const signin = async (req, res, next) => {
     try {
         const user = await User.findOne({ name: req.body.name });

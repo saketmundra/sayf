@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 const initVector = crypto.randomBytes(16);
 const Securitykey = crypto.randomBytes(32);
 
+//this api is for creating a unique code for qr based on date and token so no other person can use the same qr code and one qr code can only be accepted once.
 const createqr = async (req, res, next) => {
     try {
         const cipher = crypto.createCipheriv(process.env.ALGORITHM, Securitykey, initVector);
@@ -20,6 +21,12 @@ const createqr = async (req, res, next) => {
         next(err)
     }
 }
+
+// API FOR CREATING QR= "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={encryptedData}"
+
+
+
+//this api is for verifying qr. if the decrypted code is equal to token then the person will recieve 10 coins.
 const checkqr = async (req, res, next) => {
     try {
         const decipher = crypto.createDecipheriv(process.env.ALGORITHM, Securitykey, initVector);
@@ -45,6 +52,7 @@ const checkqr = async (req, res, next) => {
     }
 }
 
+//this api is to save the location of the person if he recieves coins with the help of his IP Address
 const getlocation=async(req,res,next)=>{
     try {
         const ipaddress=ip.address()
