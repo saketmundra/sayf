@@ -1,6 +1,8 @@
 // import Qr from "../models/qr.js"
 import crypto from "crypto"
 import User from "../models/user.js"
+import axios from "axios"
+import ip from "ip"
 import jwt from "jsonwebtoken";
 
 
@@ -19,7 +21,6 @@ const createqr = async (req, res, next) => {
     }
 }
 const checkqr = async (req, res, next) => {
-    console.log(req.headers['x-forwarded-for']);
     try {
         const decipher = crypto.createDecipheriv(process.env.ALGORITHM, Securitykey, initVector);
         let decryptedData = decipher.update(req.body.id, "hex", "utf-8");
@@ -28,7 +29,9 @@ const checkqr = async (req, res, next) => {
         const tok=req.cookies.access_token.split('.')
         if(did[0]===tok[0]){ 
             try {
-                await User.findByIdAndUpdate("6451770c2697e8e88437e622", {
+                const decoded = jwt.decode(tok[0], process.env.JWT);
+                console.log(decoded);
+                await User.findByIdAndUpdate(req.user.id, {
                     $inc: {coins:5}
             })
             res.status(200).send("Coins Updated")
@@ -42,5 +45,31 @@ const checkqr = async (req, res, next) => {
     }
 }
 
+const getlocation=async(req,res,next)=>{
+    try {
+        const ipaddress=ip.address()
+        const options = {
+            method: 'GET',
+            url: 'https://ip-geolocation-ipwhois-io.p.rapidapi.com/json/',
+            params: {
+              ip: '122.162.144.251' // hard-coding ip address as geolocation api is paid for reserved locations. here ip address of the device will be used.
+            },
+            headers: {
+              'X-RapidAPI-Key': '0a6bd2e73emsh028e4e85e571f0fp18f9a5jsnf2b1ba10b247',
+              'X-RapidAPI-Host': 'ip-geolocation-ipwhois-io.p.rapidapi.com'
+            }
+          };
+          try {
+              const response = await axios.request(options);
+              await User.findByIdAndUpdate(req.user.id,{location:response.data.latitude +","+response.data.longitude})
+              res.status(200).send(response.data);
+          } catch (error) {
+              console.error(error);
+          }
+    } catch (error) {
+        next(error)
+    }
+}
 
-export { createqr,checkqr}
+
+export { createqr,checkqr,getlocation}
